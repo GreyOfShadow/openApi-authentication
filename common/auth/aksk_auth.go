@@ -6,25 +6,26 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/url"
-	"openApi-authentication/common/constant"
-	"openApi-authentication/common/model"
-	"openApi-authentication/common/util"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/GreyOfShadow/openApi-authentication/common/constant"
+	"github.com/GreyOfShadow/openApi-authentication/common/model"
+	"github.com/GreyOfShadow/openApi-authentication/common/util"
 )
 
 type AkskConfig struct {
-	AccessKey string
-	SecretKey string
-	Uri       string
-	Method    string
-	EndPoint string
+	AccessKey     string
+	SecretKey     string
+	Uri           string
+	Method        string
+	EndPoint      string
 	SignedHeaders string // 参与计算的头部
 }
 
-func TransferRequestMsg(config AkskConfig) model.HttpRequestMsg{
+func TransferRequestMsg(config AkskConfig) model.HttpRequestMsg {
 	var requestMsg = model.HttpRequestMsg{Params: map[string]string{}, Headers: map[string]string{}}
 	requestMsg.Uri = config.Uri
 	requestMsg.Method = config.Method
@@ -40,7 +41,7 @@ func TransferRequestMsg(config AkskConfig) model.HttpRequestMsg{
 	return requestMsg
 }
 
-func Invoke(config AkskConfig, jsonStr string) string{
+func Invoke(config AkskConfig, jsonStr string) string {
 	var requestMsg = TransferRequestMsg(config)
 	requestMsg.Body = jsonStr
 
@@ -61,9 +62,10 @@ func getCurrentTimeSeconds() string {
 	return strconv.FormatInt(timeStamp, 10)
 }
 
-/**
-	拼接最后签名
- */
+/*
+*
+拼接最后签名
+*/
 func genAuthorization(accessKey string, signedHeaders string, signature string) string {
 	var build strings.Builder
 	build.WriteString(constant.HeadSignAlgorithm)
@@ -95,33 +97,35 @@ func getSignature(requestMsg model.HttpRequestMsg, secretKey string, timeStamp s
 	return hmac256(secretKey, stringToSign)
 }
 
- /**  获取uri  */ 
+/**  获取uri  */
 func getRequestUri(requestMsg model.HttpRequestMsg) string {
-	indexOfQueryStringSeparator := strings.Index(requestMsg.Uri, "?") 
-	if indexOfQueryStringSeparator == -1 { 
+	indexOfQueryStringSeparator := strings.Index(requestMsg.Uri, "?")
+	if indexOfQueryStringSeparator == -1 {
 		return requestMsg.Uri
-	} 
+	}
 	return string([]rune(requestMsg.Uri)[:indexOfQueryStringSeparator])
 }
 
-/**
-	获取uri参数
- */
+/*
+*
+获取uri参数
+*/
 func getQueryString(requestMsg model.HttpRequestMsg) string {
 	indexOfQueryStringSeparator := strings.Index(requestMsg.Uri, "?")
 	if "POST" == requestMsg.Method || indexOfQueryStringSeparator == -1 {
 		return ""
 	}
-	s , err := url.PathUnescape(requestMsg.Uri[indexOfQueryStringSeparator + 1 : len(requestMsg.Uri)])
+	s, err := url.PathUnescape(requestMsg.Uri[indexOfQueryStringSeparator+1 : len(requestMsg.Uri)])
 	if err != nil {
 		fmt.Println("decode请求参数失败.")
 	}
 	return s
 }
 
-/**
-	获取并排序参与签名计算的头部
- */
+/*
+*
+获取并排序参与签名计算的头部
+*/
 func getSignedHeaders(signedHeaders string) string {
 	if len(signedHeaders) == 0 {
 		return "content-type;host"
@@ -131,13 +135,14 @@ func getSignedHeaders(signedHeaders string) string {
 	return strings.Join(headers, ";")
 }
 
-/**
-	获取k-v字符串
- */
+/*
+*
+获取k-v字符串
+*/
 func getCanonicalHeaders(headerMap map[string]string, signedHeaders string) string {
 	keys := strings.Split(signedHeaders, ";")
 	var headers = make(map[string]string)
-	for k, v := range headerMap{
+	for k, v := range headerMap {
 		headers[strings.ToLower(k)] = v
 	}
 	var build strings.Builder
@@ -150,13 +155,14 @@ func getCanonicalHeaders(headerMap map[string]string, signedHeaders string) stri
 	return build.String()
 }
 
-/**
-	加密算法
- */
+/*
+*
+加密算法
+*/
 func hmacSha256(str string) string {
 	hash := sha256.New()
 	hash.Write([]byte(str))
-	hashCode :=  hash.Sum(nil)
+	hashCode := hash.Sum(nil)
 	result := hex.EncodeToString(hashCode)
 	return strings.ToLower(result)
 }
@@ -168,5 +174,3 @@ func hmac256(secretKey string, stringToSign string) string {
 	result := hex.EncodeToString(key.Sum(nil))
 	return strings.ToLower(result)
 }
-
-

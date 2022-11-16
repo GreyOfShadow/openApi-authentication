@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"openApi-authentication/common/auth"
+
+	"github.com/GreyOfShadow/openApi-authentication/common/auth"
 )
 
 func main() {

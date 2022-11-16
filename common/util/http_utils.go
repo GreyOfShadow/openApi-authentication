@@ -5,8 +5,9 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"openApi-authentication/common/model"
 	"strings"
+
+	"github.com/GreyOfShadow/openApi-authentication/common/model"
 )
 
 func Call(requestMsg model.HttpRequestMsg) string {
