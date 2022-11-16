@@ -1,4 +1,4 @@
-module openApi-authentication
+module github.com/GreyOfShadow/openApi-authentication
 
 go 1.17
 
